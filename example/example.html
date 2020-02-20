@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Rendered: Mon Feb 17 18:19:34 -0500 2020 -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script language="JavaScript" type="text/javascript" src="libs/jquery-1.7.1.min.js"></script>
+    <script language="JavaScript" type="text/javascript" src="libs/jquery.bxslider.min.js"></script>
+    <link type="text/css" href="libs/jquery.bxslider.css" rel="stylesheet"/>
+    <link type="text/css" href="gigapan.css" rel="stylesheet"/>
+    <link type="text/css" href="viewer.css" rel="stylesheet"/>
+    <style type="text/css">
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 18px;
+        width: 100%;
+        background-color: #1D1D1D;
+        color: #ffffff;
+        padding-left: 7px;
+      }
+      #gigapan {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #000000;
+      }
+      #header ~ #gigapan {
+        top: 18px;
+      }
+      #gigapan-viewer {
+        height: 100%;
+        background-color: #000;
+      }
+      #embed{
+        overflow:hidden;
+      }
+    </style>
+     <script language="JavaScript" type="text/javascript" src="gigapan_core_min.js"></script>
+    <title>BurgundyRidge2</title>
+  </head>
+  <body>
+    <div id="embed">
+      <div id="gigapan-viewer"></div>
+    </div>
+    <script type="text/javascript">
+      function getURLParams() {
+        var urlParams = {}
+        var qsa = window.location.search;
+        while(qsa.charAt(0) === '?') {
+          qsa = qsa.substr(1);
+        }
+        var qsaArray = qsa.split("&");
+        for (var i = 0; i < qsaArray.length; i++) {
+          var kv = qsaArray[i].split("=");
+          urlParams[kv[0]] = kv[1] == "1" ? true : false;
+        }
+        return urlParams;
+      }
+
+      var isMobileDeviceUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone OS/i.test(navigator.userAgent) ;
+      var urlConfig = getURLParams();
+
+      var embed = {
+        'title': urlConfig["show-title"],
+        'titleStr': "BurgundyRidge2",
+        'snapshots': urlConfig["show-snapshots"]
+      }
+
+      var viewer;
+      // var gigapan = {"gigapan":{"is_game":false,"snapshottable":true,"tile_server_path":"http://tile217.gigapan.com/gigapans0/217593/tiles.b75d4c508ce0fa815e299b16ad550bd1/","related_gigapans":[{"thumbnail_url":"//static.gigapan.com/gigapans0/95906/images/95906-150x100-0-14584-2159-11881.jpg","name":"Cerambycidae Receiving 3","id":95906},{"thumbnail_url":"//static.gigapan.com/gigapans0/97137/images/97137-150x100-0-4624-4835-7917.jpg","name":"St Michael's Stained Glass Windows","id":97137},{"thumbnail_url":"//static.gigapan.com/gigapans0/100092/images/100092-150x100-0-14692-2049-11843.jpg","name":"Lampyridae 2","id":100092},{"thumbnail_url":"//static.gigapan.com/gigapans0/428/images/428-150x100-5888-27089-0-14134.jpg","name":"Gukgiwon (Taekwondo) World Headquarters main arena","id":428},{"thumbnail_url":"//static.gigapan.com/gigapans0/5233/images/5233-150x100-15349-19534-0-2790.jpg","name":"Tour de Moncalou","id":5233},{"thumbnail_url":"//static.gigapan.com/gigapans0/85973/images/85973-150x100-0-14848-2057-11955.jpg","name":"Lucanidae 3","id":85973},{"thumbnail_url":"//static.gigapan.com/gigapans0/20417/images/20417-150x100-8220-13220-0-3333.jpg","name":"Sandia Eastward View","id":20417},{"thumbnail_url":"//static.gigapan.com/gigapans0/57939/images/57939-150x100-30879-53745-0-15244.jpg","name":"Bourscheid View","id":57939},{"thumbnail_url":"//static.gigapan.com/gigapans0/72868/images/72868-150x100-27548-36452-0-5936.jpg","name":"CHAUSEY LE SOUND PAR GRANDE MAREE","id":72868},{"thumbnail_url":"//static.gigapan.com/gigapans0/27416/images/27416-150x100-21801-44925-0-15416.jpg","name":"Bahnhof (Train Station), Wolfenbuttel, Germany","id":27416},{"thumbnail_url":"//static.gigapan.com/gigapans0/32083/images/32083-150x100-26009-45035-0-12684.jpg","name":"Decinsky Sneznik, rozhledna","id":32083},{"thumbnail_url":"//static.gigapan.com/gigapans0/88293/images/88293-150x100-2457-11679-0-6148.jpg","name":"tu lou","id":88293},{"thumbnail_url":"//static.gigapan.com/gigapans0/56743/images/56743-150x100-5812-13001-0-4793.jpg","name":"Elia-Hof","id":56743},{"thumbnail_url":"//static.gigapan.com/gigapans0/35134/images/35134-150x100-13743-21124-0-4921.jpg","name":"Jakobshavn Glacier","id":35134},{"thumbnail_url":"//static.gigapan.com/gigapans0/41299/images/41299-150x100-7527-20325-0-8532.jpg","name":"Our Urban Farmhouse #4","id":41299},{"thumbnail_url":"//static.gigapan.com/gigapans0/67682/images/67682-150x100-0-14180-951-10405.jpg","name":"+ + + clockwise + + +","id":67682},{"thumbnail_url":"//static.gigapan.com/gigapans0/50850/images/50850-150x100-23623-37645-0-9348.jpg","name":"Warren Dunes State Park","id":50850},{"thumbnail_url":"//static.gigapan.com/gigapans0/59790/images/59790-150x100-0-14648-2177-11943.jpg","name":"Cicadidae 21","id":59790},{"thumbnail_url":"//static.gigapan.com/gigapans0/103784/images/103784-150x100-6361-15468-0-6071.jpg","name":"Potomac Great Falls","id":103784},{"thumbnail_url":"//static.gigapan.com/gigapans0/120236/images/120236-150x100-35531-42470-0-4626.jpg","name":"Centennial Valley of Montana","id":120236}],"is_private":true,"allow_others_to_print":false,"id":217593,"user_id":123010,"height":20796,"levels":9,"width":41300}};
+      var gigapan = {
+        gigapan: {
+          related_gigapans: ''
+        }
+      }
+
+      function onGigapanEmbedViewerAPIReady() {
+        var gigapanId = 217593;
+        viewer = new org.gigapan.viewers.SeadragonViewer('gigapan-viewer', {
+          id: 217593,
+          auth_key: "b75d4c508ce0fa815e299b16ad550bd1",
+          width: 41300,
+          height: 20796,
+          levels: 9,
+          title: "BurgundyRidge2",
+          printable: false,
+          snapshottable: false,
+          is_private: true,
+          related: gigapan.gigapan.related_gigapans,
+          //related: {},
+          embed: {
+            width: "100%",
+            height: "500"
+          },
+          options: {
+            showGigapanWatermarkByDefault: true,
+            showGigapanWatermarkOnFullscreen: true,
+            showNavigationControl: true,
+            showFullScreenButton: true,
+            showResetButton: true,
+            showPrintButton: true,
+            showSnapshotBrowser:  typeof urlConfig["show-snapshots"] == "undefined" ? false : urlConfig["show-snapshots"],
+            showSnapshotByDefault:  typeof urlConfig["show-snapshots"] == "undefined" ? false : urlConfig["show-snapshots"],
+            showRelatedGigapans:  typeof urlConfig["show-related"] == "undefined" ? false : urlConfig["show-related"],
+            showThumbnailNavigation: false
+          }
+        });
+      }
+      onGigapanEmbedViewerAPIReady();
+    </script>
+    <script>
+      function viewerResizeComplete(){
+        var h=0, w=0;
+        if (parent.window.frames[0]){
+          w = parent.window.frames[0].innerWidth;
+          h = parent.window.frames[0].innerHeight;
+        }else{
+          w = window.innerWidth;
+          h = window.innerHeight;
+        }
+        $("#gigapan-viewer").css("width",w);
+        $("#gigapan-viewer").css("height",h);
+      }
+
+      var resizeComplete;
+
+      $(window).resize(function(){
+        clearTimeout(resizeComplete);
+        resizeComplete = setTimeout(viewerResizeComplete, 100);
+      });
+      $(function() {
+        viewerResizeComplete();
+      });
+    </script>
+  </body>
+</html>
