@@ -4,6 +4,8 @@ const morgan = require('morgan')
 const cors = require('cors')
 const fetch = require('node-fetch')
 const fs = require('fs')
+const FS = require('./lib/FileSystem')
+const Utils = require('./lib/Utils')
 const path = require('path')
 const PORT = process.env.PORT || 4000
 const morganSetting = process.env.NODE === 'production' ? 'prod' : 'dev'
@@ -16,23 +18,19 @@ app.use(morgan(morganSetting))
 app.get('/gigapans0/:id/tiles.:authKey/:r1.jpg', async (req, res, next) => {
     try {
         const { id, authKey, r1 } = req.params
-        const absolutePath = path.resolve(__dirname, `./images/${id}/${r1}.jpg`)
-        fs.stat(absolutePath, async (err, stat) => {
+        const pathToImage = path.resolve(__dirname, `./images/${id}/${r1}.jpg`)
+        const tileNum = Utils.getGigapanTileNumber(Number(id))
+        fs.stat(pathToImage, async (err, stat) => {
             if (err === null) {
-                // serve local
-                res.sendFile(absolutePath)
+                res.sendFile(pathToImage) // serve local
             } else if (err.code === 'ENOENT') {
-                // download from gigapan
-                const resp = await fetch(`http://tile217.gigapan.org${req.path}`)
-                // pipe to HTTP response
-                resp.body.pipe(res)
-                // pipe to write stream for later usage
-                const fileStream = fs.createWriteStream(absolutePath)
+                const resp = await fetch(`http://tile${tileNum}.gigapan.org${req.path}`) // download from gigapan
+                resp.body.pipe(res) // pipe to HTTP response
+                const fileStream = fs.createWriteStream(pathToImage) // pipe to write stream for later usage
                 resp.body.pipe(fileStream)
             } else {
                 res.sendStatus(500)
             }
-            return
         })
     } catch (err) {
         console.log(err)
@@ -43,38 +41,25 @@ app.get('/gigapans0/:id/tiles.:authKey/:r1.jpg', async (req, res, next) => {
 app.get('/gigapans0/:id/tiles.:authKey/:r1/:r2.jpg', (req, res, next) => {
     try {
         const { id, authKey, r1, r2 } = req.params
-        const absolutePath = path.resolve(__dirname, `./images/${id}/${r1}/${r2}.jpg`)
-        fs.stat(absolutePath, async (err, stat) => {
+        const pathToImage = path.resolve(__dirname, `./images/${id}/${r1}/${r2}.jpg`)
+        const tileNum = Utils.getGigapanTileNumber(Number(id))
+        fs.stat(pathToImage, async (err, stat) => {
             if (err === null) {
-                // serve local
-                return res.sendFile(absolutePath)
+                return res.sendFile(pathToImage) // serve local
             } else if (err.code === 'ENOENT') {
-                // file does not exist -- download from gigapan
-                const resp = await fetch(`http://tile217.gigapan.org${req.path}`)
-                // pipe to HTTP response
-                resp.body.pipe(res)
-                // pipe to write stream for later usage
-                const pathToGigaId = path.resolve(__dirname, `./images/${id}`)
-                fs.stat(pathToGigaId, (err, stat) => {
-                    if (err === null) {
-                        const fileStream = fs.createWriteStream(absolutePath)
-                        resp.body.pipe(fileStream)
-                        return
-                    } else if (err.code === 'ENOENT') {
-                        // fs.mkdirSync(pathToBackupRecs, { recursive: true })
-                        fs.mkdir(pathToGigaId, { recursive: true }, (err) => {
-                            if (err) {
-                                return res.send(500)
-                            } else {
-                                const fileStream = fs.createWriteStream(absolutePath)
-                                resp.body.pipe(fileStream)
-                                return                                        
-                            }
-                        })
-                    } else {
-                        return res.sendStatus(500)
-                    }
-                })
+                const resp = await fetch(`http://tile${tileNum}.gigapan.org${req.path}`) // file does not exist -- download from gigapan
+                const respCopy = resp.clone() // needed b/c data is flushed after piping to response
+                resp.body.pipe(res) // pipe to HTTP response
+                const pathToFolder = path.resolve(__dirname, `./images/${id}/${r1}`)
+                const gigaIdFolderExists = await FS.doesFileExistAsync(pathToFolder)
+                if (gigaIdFolderExists) {
+                    const fileStream = fs.createWriteStream(pathToImage)
+                    respCopy.body.pipe(fileStream)
+                } else {
+                    await FS.createFileAsync(pathToFolder, { recursive: true })
+                    const fileStream = fs.createWriteStream(pathToImage)
+                    respCopy.body.pipe(fileStream)
+                }
             } else {
                 return res.sendStatus(500)
             }
@@ -87,21 +72,26 @@ app.get('/gigapans0/:id/tiles.:authKey/:r1/:r2.jpg', (req, res, next) => {
 
 app.get('/gigapans0/:id/tiles.:authKey/:r1/:r2/:r3.jpg', (req, res, next) => {
     try {
-        const { id, authKey, r1 } = req.params
-        const absolutePath = path.resolve(__dirname, `./images/${id}/${r1}.jpg`)
-        fs.stat(absolutePath, async (err, stat) => {
+        const { id, authKey, r1, r2, r3 } = req.params
+        const pathToImage = path.resolve(__dirname, `./images/${id}/${r1}/${r2}/${r3}.jpg`)
+        const tileNum = Utils.getGigapanTileNumber(Number(id))
+        fs.stat(pathToImage, async (err, stat) => {
             if (err === null) {
-                // serve local
-                return res.sendFile(absolutePath)
+                return res.sendFile(pathToImage) // serve local
             } else if (err.code === 'ENOENT') {
-                // download from gigapan
-                const resp = await fetch(`http://tile217.gigapan.org/gigapans0/${id}/tiles.${authKey}/${r1}.jpg`)
-                // pipe to HTTP response
-                resp.body.pipe(res)
-                // pipe to write stream for later usage
-                const fileStream = fs.createWriteStream(absolutePath)
-                resp.body.pipe(fileStream)
-                return
+                const resp = await fetch(`http://tile${tileNum}.gigapan.org${req.path}`) // file does not exist -- download from gigapan
+                const respCopy = resp.clone() // needed b/c data is flushed after piping to response
+                resp.body.pipe(res) // pipe to HTTP response
+                const pathToFolder = path.resolve(__dirname, `./images/${id}/${r1}/${r2}`)
+                const gigaIdFolderExists = await FS.doesFileExistAsync(pathToFolder)
+                if (gigaIdFolderExists) {
+                    const fileStream = fs.createWriteStream(pathToImage)
+                    respCopy.body.pipe(fileStream)
+                } else {
+                    await FS.createFileAsync(pathToFolder, { recursive: true })
+                    const fileStream = fs.createWriteStream(pathToImage)
+                    respCopy.body.pipe(fileStream)
+                }
             } else {
                 return res.sendStatus(500)
             }

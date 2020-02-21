@@ -1989,14 +1989,16 @@ org.gigapan.utils.GigapanTiles = function () {
 	return {
 		getTileServerDomainName: function (b) {
 			b = Math.floor(b / 1E3);
-			return "tile" + (10 > b ? "0" : "") + b + ".gigapan.org"
+			// console.log('tile server thing', "tile" + (10 > b ? "0" : "") + b + ".gigapan.org")
+			// return "tile" + (10 > b ? "0" : "") + b + ".gigapan.org"
+			return "localhost:4000"
 		},
 		getTilesPath: function (b, a) {
-			console.log({
-				b,
-				a,
-				val: org.gigapan.utils.GigapanTiles.getTileServerDomainName(b) + ("/gigapans0/" + b + "/tiles" + (null == a ? "" : "." + a) + "/")
-			})
+			// console.log({
+			// 	b,
+			// 	a,
+			// 	val: org.gigapan.utils.GigapanTiles.getTileServerDomainName(b) + ("/gigapans0/" + b + "/tiles" + (null == a ? "" : "." + a) + "/")
+			// })
 			return org.gigapan.utils.GigapanTiles.getTileServerDomainName(b) + ("/gigapans0/" + b + "/tiles" + (null == a ? "" : "." + a) + "/")
 		}
 	}
@@ -2035,9 +2037,9 @@ if (!window.Seadragon) {
 			
 			for (d = 0; d < j.length - 3;) b += "/" + j.substr(d, 3), d += 3;
 			const tileUrl = b + "/" + j + ".jpg"
-			const path = "/" + j + ".jpg"
-			console.log('path', path)
-			console.log('tileUrl', tileUrl)
+			// const path = "/" + j + ".jpg"
+			// console.log('path', path)
+			// console.log('tileUrl', tileUrl)
 			// if (tileUrl.includes('/r00/')) {
 			// 	debugger
 			// }
