@@ -114,3 +114,6 @@ server/images
 
 # Apple stuff
 .DS_Store
+
+# zoomable images created
+server/dzis/**

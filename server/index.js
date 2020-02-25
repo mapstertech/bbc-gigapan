@@ -2,6 +2,8 @@ require('dotenv')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const sharp = require('sharp')
+const bodyParser = require('body-parser')
 const fetch = require('node-fetch')
 const fs = require('fs')
 const FS = require('./lib/FileSystem')
@@ -12,9 +14,11 @@ const morganSetting = process.env.NODE === 'production' ? 'prod' : 'dev'
 const app = express()
 
 app.use(cors())
+app.use(bodyParser.json({ limit: '50mb' }))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan(morganSetting))
+app.use('/dzis', express.static(path.resolve(__dirname, './dzis')))
 
-// app.get('/gigapans0/217593/tiles.b75d4c508ce0fa815e299b16ad550bd1/r00')
 app.get('/gigapans0/:id/tiles.:authKey/:r1.jpg', async (req, res, next) => {
     try {
         const { id, authKey, r1 } = req.params
@@ -97,6 +101,37 @@ app.get('/gigapans0/:id/tiles.:authKey/:r1/:r2/:r3.jpg', (req, res, next) => {
             }
         })
     } catch (err) {
+        console.log(err)
+        next(err)
+    }
+})
+
+app.post('/merged-image', async (req, res, next) => {
+    try {
+        if (!req.body.img) {
+            res.status(400).send({ msg: 'img field is required' })
+            return
+        }
+        if (!req.body.name) {
+            res.status(400).send({ msg: 'name field is required' })
+            return
+        }
+        // slice this part off: "data:image/png;base64,"
+        const imgBuffer = Buffer.from(req.body.img.slice(22), 'base64')
+        sharp(imgBuffer)
+            .png()
+            .tile({ size: 512 })
+            .toFile(`./server/dzis/${req.body.name}.dz`, (err, info) => {
+                console.log('err, info', err, info)
+                if (err) {
+                    res.sendStatus(500)
+                    return
+                } else {
+                    res.status(201).send({ dzi: `${req.body.name}.dz` })
+                    return
+                }
+            })
+    } catch(err) {
         console.log(err)
         next(err)
     }
