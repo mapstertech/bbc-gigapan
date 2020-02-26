@@ -67,19 +67,23 @@ export default class App extends Component {
             const { height } = this.state.grid[i][0]
             finalHeight = finalHeight + height
         }
-        const b64 = await mergeImages(imgs, {
-            height: finalHeight,
-            width: finalWidth
-        })
-        this.setState({ img: b64 })
-        await this.postMergedImage(b64)
-        // load the open sea dragon embed
-        const osd = openseadragon({
-            id: "openseadragon1",
-            // prefixUrl: "http://localhost/",
-            tileSources: "http://localhost:4000/dzis/test.dzi"
-        })
-        this.setState({ osd })
+        try {
+            const b64 = await mergeImages(imgs, {
+                height: finalHeight,
+                width: finalWidth
+            })
+            this.setState({ img: b64 })
+            await this.postMergedImage(b64)
+            // load the open sea dragon embed
+            // const osd = openseadragon({
+            //     id: "openseadragon1",
+            //     // prefixUrl: "http://localhost/",
+            //     tileSources: "http://localhost:4000/dzis/test.dzi"
+            // })
+            // this.setState({ osd })
+        } catch(err) {
+            console.log(err)
+        }
     }
 
     postMergedImage = async (b64) => {

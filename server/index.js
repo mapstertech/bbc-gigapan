@@ -1,8 +1,10 @@
-require('dotenv')
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const sharp = require('sharp')
+const Busboy = require('busboy')
+const AWS = require('aws-sdk')
 const bodyParser = require('body-parser')
 const fetch = require('node-fetch')
 const fs = require('fs')
@@ -18,6 +20,8 @@ app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(morgan(morganSetting))
 app.use('/dzis', express.static(path.resolve(__dirname, './dzis')))
+// set AWS credentials
+AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: process.env.AWS_PROFILE })
 
 app.get('/gigapans0/:id/tiles.:authKey/:r1.jpg', async (req, res, next) => {
     try {
@@ -135,6 +139,37 @@ app.post('/merged-image', async (req, res, next) => {
         console.log(err)
         next(err)
     }
+})
+
+// these two endpoints were just for testin AWS uploads with streams
+app.get('/', function (req, res) {
+    return res.send(`
+        <form action="fileupload" method="post" enctype="multipart/form-data">
+            <input type="file" name="filetoupload"><br>
+            <input type="submit">
+        </form>
+    `)
+})
+
+app.post('/fileupload', function (req, res) {
+    const busboy = new Busboy({ headers: req.headers })
+    busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
+        const bucketParams = {
+            Bucket: 'bbcga',
+            Key: `gigapan-dev/${filename}`,
+            Body: file
+        }
+        const s3 = new AWS.S3
+        s3.upload(bucketParams, (err, data) => {
+            if (err) {
+                return res.sendStatus(500)
+            } else {
+                return res.send(data)
+            }
+        })
+    })
+
+    return req.pipe(busboy)
 })
 
 app.listen(PORT, () => {
