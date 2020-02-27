@@ -117,3 +117,5 @@ server/images
 
 # zoomable images created
 server/dzis/**
+
+server/panos/**
