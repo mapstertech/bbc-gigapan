@@ -176,25 +176,45 @@ app.post('/merged-image', async (req, res, next) => {
 })
 
 // these two endpoints were just for testin AWS uploads with streams
-app.get('/gigapan', function(req, res) {
+app.get('/upload', function(req, res) {
     return res.send(`
         <h1>Upload a stitched together panorama here</h1>
         <form action="fileUploadGP" method="post" enctype="multipart/form-data">
-            <input type="file" name="filetoupload"><br>
+            <input type="file" name="gp"><br>
             <input type="submit">
         </form>
     `)
 })
 
 app.post('/fileUploadGP', (req, res, next) => {
-    const form = formidable({ multiples: true })
+    const form = formidable({
+        multiples: true,
+        maxFileSize: 300 * 1024 * 1024
+    })
     form.parse(req, (err, fields, files) => {
         if (err) {
             next(err)
         } else {
-            console.log('fields', fields)
-            console.log('files', files)
-            res.sendStatus(200)
+            if (files.gp) {
+                sharp(files.gp.path)
+                    .png()
+                    .tile({
+                        size: 512
+                    })
+                    .toFile(`./server/dzis/${files.gp.name}.dz`, (err, info) => {
+                        if (err) {
+                            console.log(err)
+                            res.status(500).send(err)
+                        } else {
+                            res.status(201).send({
+                                dzi: `http://localhost:4000/dzis/${files.gp.name}.dzi`
+                            })
+                            // now send to S3 and return the S3 address
+                        }
+                    })
+            } else {
+                res.sendStatus(400)
+            }
         }
     })
 })
