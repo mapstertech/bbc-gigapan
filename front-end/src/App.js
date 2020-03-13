@@ -1,9 +1,7 @@
 import React, {
     Component
 } from 'react';
-import openseadragon from 'openseadragon'
 import mergeImages from 'merge-images'
-import Grid from './components/Grid'
 
 export default class App extends Component {
     constructor(props) {
@@ -17,7 +15,10 @@ export default class App extends Component {
         this.fileInput = React.createRef()
     }
 
-    updateFiles = ({ x, y }, files) => {
+    updateFiles = ({
+        x,
+        y
+    }, files) => {
         const src = URL.createObjectURL(files[0])
         const img = new Image()
         img.onload = (e) => {
@@ -141,34 +142,45 @@ export default class App extends Component {
     }
 
     handleSubmit = async (e) => {
-        e.preventDefault()
-        const file = this.fileInput.current.files && this.fileInput.current.files[0]
-        if (!file) {
-            alert('you must upload a file')
-        } else {
-            const formData = new FormData()
-            formData.append('gp', file)
-            const resp = await await fetch('http://localhost:4000/fileUploadGP', {
-                method: 'POST',
-                body: formData
-            })
-            const { dzi } = await resp.json()
-            openseadragon({
-                id: "openseadragon1",
-                tileSources: dzi
-            })
-            this.setState({ dziAddress: dzi })
-        }
+        // e.preventDefault()
+        // const file = this.fileInput.current.files && this.fileInput.current.files[0]
+        // if (!file) {
+        //     alert('you must upload a file')
+        // } else {
+        //     const formData = new FormData()
+        //     formData.append('gp', file)
+        //     const resp = await await fetch('http://localhost:4000/fileUploadGP', {
+        //         method: 'POST',
+        //         body: formData
+        //     })
+        //     const {
+        //         dzi
+        //     } = await resp.json()
+        //     openseadragon({
+        //         id: "openseadragon1",
+        //         tileSources: dzi
+        //     })
+        //     this.setState({
+        //         dziAddress: dzi
+        //     })
+        // }
     }
 
     componentDidMount() {
-        const osd = openseadragon({
+        const viewer = window.OpenSeadragon({
             id: "openseadragon1",
-            tileSources: "http://localhost:4000/dzis/ptgui-panorama.jpg.dzi"
+            prefixUrl: "./openseadragon/images/",
+            navigatorSizeRatio: 0.5,
+            tileSources: [{
+                type: 'gigapan',
+                // tileSize: 256, // not necessary - GigapanTileSource assumes 256
+                tileOverlap: 0,
+                width: 100000,
+                height: 100000,
+                // tilesUrl: 'http://tile155.gigapan.com/gigapans0/155637/tiles/'
+                tilesUrl: 'https://bbcga.s3.us-east-2.amazonaws.com/gigapan-dev/Congolmerate_beds/Conglomerate_beds.data/tiles/'
+            }]
         })
-        // this.setState({
-        //     osd
-        // })
     }
 
     render() {
